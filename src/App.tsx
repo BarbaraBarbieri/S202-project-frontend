@@ -1,114 +1,180 @@
-// import axios from 'axios'
-import './App.css'
+import "./App.css";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl, 
+  FormMessage
+} from "./components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardHeader, CardTitle, CardContent } from "./components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
+import { useEffect, useState } from "react";
 
-function App() {
-
-  const consultas = [
-    {
-      id: "1",
-      date: "01/01/2024 15:30",
-      specialty: "Cardiologia",
-      doctor: "Dr. Fulano",
-      patient: "Beltrano",
-    },
-    {
-      id: "2",
-      date: "01/01/2024 15:30",
-      specialty: "Cardiologia",
-      doctor: "Dr. Fulano",
-      patient: "Beltrano",
-    },
-    {
-      id: "3",
-      date: "01/01/2024 15:30",
-      specialty: "Cardiologia",
-      doctor: "Dr. Fulano",
-      patient: "Beltrano",
-    },
-    {
-      id: "4",
-      date: "01/01/2024 15:30",
-      specialty: "Cardiologia",
-      doctor: "Dr. Fulano",
-      patient: "Beltrano",
-    },   
-  ]
-
-  return (
-    <div className="flex flex-row gap-10">
-      <Card className="w-[500px]">
-        <CardHeader>
-          <CardTitle>Agendar Consulta</CardTitle>
-          <CardDescription>Agende sua consulta com poucos cliques.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col items-start space-y-1.5">
-                <Label htmlFor="name">Especialidade</Label>
-                <Input id="name" placeholder="Nome da especialidade..." />
-              </div>
-              <div className="flex flex-col items-start space-y-1.5">
-                <Label htmlFor="name">Médico(a)</Label>
-                <Input id="name" placeholder="Nome da médico(a)..." />
-              </div>
-              <div className="flex flex-col items-start space-y-1.5">
-                <Label htmlFor="framework">Data e horário</Label>
-                <Input id="name" placeholder="DD/MM/AAAA hh:mm" />
-              </div>
-            </div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancelar</Button>
-          <Button>Agendar</Button>
-        </CardFooter>
-      </Card>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Data e horário</TableHead>
-            <TableHead>Especialidade</TableHead>
-            <TableHead>Médico(a)</TableHead>
-            <TableHead>Paciente</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {consultas.map((consulta) => (
-            <TableRow key={consulta.id}>
-              <TableCell>{consulta.date}</TableCell>
-              <TableCell>{consulta.specialty}</TableCell>
-              <TableCell>{consulta.doctor}</TableCell>
-              <TableCell>{consulta.patient}</TableCell>
-              <TableCell>Editar / Deletar</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
+export interface User {
+  _id: string
+  email: string
+  password: string
+  name: string
+  socialName?: string
+  rg: string
+  cpf: string
+  gender: string
+  birthDate: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
-export default App
+const formSchema = z.object({
+  pacient: z.string(),
+  medic: z.string(),
+});
+
+export default function App() {
+  const [pacients, setPacients] = useState<User[]>([]);
+  const [medics, setMedics] = useState<User[]>([]);
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      pacient: "",
+      medic: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
+  }
+
+  async function getPacients() {
+    const result = await fetch("http://localhost:3333/pacients")
+
+    const data = await result.json()
+
+    if (result.ok) {
+      setPacients(data.pacients)
+    }
+  }
+
+  async function getMedics() {
+    const result = await fetch("http://localhost:3333/medics")
+
+    const data = await result.json()
+
+    if (result.ok) {
+      setMedics(data.medics)
+    }
+  }
+
+  useEffect(() => {
+    getPacients()
+    getMedics()
+  }, [])
+
+  return (
+    <Card className="w-[350px]">
+      <CardHeader className="items-center">
+        <CardTitle>Criar novo agendamento</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex flex-col">
+            <FormField
+              control={form.control}
+              name="pacient"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Paciente</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um paciente" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {pacients.map((pacient: User) => {
+                        return (
+                          <SelectItem key={pacient._id} value={pacient._id}>
+                            {pacient.name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="medic"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Médico</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um médico" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {medics.map((medic: User) => {
+                        return (
+                          <SelectItem key={medic._id} value={medic._id}>
+                            {medic.name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Paciente</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a data do agendamento" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {pacients.map((pacient: User) => {
+                        return (
+                          <SelectItem key={pacient._id} value={pacient._id}>
+                            {pacient.name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Submit</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
