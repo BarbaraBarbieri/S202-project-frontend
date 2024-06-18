@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { Button } from "@/components/ui/button";
-import { string, z } from "zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -39,7 +39,7 @@ export interface User {
 }
 
 export interface Appointment {
-  _id: string
+  id: string
   medicName: string
   pacientName: string
   date: Date
@@ -53,6 +53,12 @@ const formSchema = z.object({
   pacient: z.string(),
   medic: z.string(),
   date: z.date(),
+});
+
+const formModalSchema = z.object({
+  pacientModal: z.string(),
+  medicModal: z.string(),
+  dateModal: z.date(),
 });
 
 export default function App() {
@@ -75,13 +81,17 @@ export default function App() {
     },
   });
 
+  const formModal = useForm<z.infer<typeof formModalSchema>>({
+    resolver: zodResolver(formModalSchema),
+  })
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     createAppointment()
     getAppointments()
   }
 
-  function onSubmitModal(values: z.infer<typeof formSchema>) {
+  function onSubmitModal(values: z.infer<typeof formModalSchema>) {
     const appointmentId = selectedAppointment?.id || ""
     console.log(values, appointmentId)
     updateAppointment(appointmentId)
@@ -145,9 +155,9 @@ export default function App() {
       },
       body: JSON.stringify({
         id: id,
-        pacientId: form.getValues("pacient"),
-        medicId: form.getValues("medic"),
-        date: form.getValues("date")
+        pacientId: formModal.getValues("pacientModal"),
+        medicId: formModal.getValues("medicModal"),
+        date: formModal.getValues("dateModal")
       })
     })
 
@@ -312,7 +322,7 @@ export default function App() {
         <TableBody>
           {appointments.map((appointment: Appointment) => {
             return (
-              <TableRow>
+              <TableRow key={appointment.id}>
                 <TableCell>{format(appointment.date, "PPP", { locale: ptBR })}</TableCell>
                 <TableCell>{appointment.medicName}</TableCell>
                 <TableCell>{appointment.pacientName}</TableCell>
@@ -330,11 +340,11 @@ export default function App() {
                           Faça as mudanças na sua consulta aqui. Clique em salvar quando terminar.
                         </DialogDescription>
                       </DialogHeader>
-                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmitModal)} className="space-y-8 flex flex-col">
+                      <Form {...formModal}>
+                        <form onSubmit={formModal.handleSubmit(onSubmitModal)} className="space-y-8 flex flex-col">
                           <FormField
-                            control={form.control}
-                            name="pacient"
+                            control={formModal.control}
+                            name="pacientModal"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Paciente</FormLabel>
@@ -362,8 +372,8 @@ export default function App() {
                             )}
                           />
                           <FormField
-                            control={form.control}
-                            name="medic"
+                            control={formModal.control}
+                            name="medicModal"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Médico</FormLabel>
@@ -391,8 +401,8 @@ export default function App() {
                             )}
                           />
                           <FormField
-                            control={form.control}
-                            name="date"
+                            control={formModal.control}
+                            name="dateModal"
                             render={({ field }) => (
                               <FormItem className="flex flex-col z-50">
                                 <FormLabel>Defina a data do agendamento</FormLabel>
