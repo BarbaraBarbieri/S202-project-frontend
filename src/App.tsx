@@ -99,7 +99,7 @@ export default function App() {
   }
 
   async function getPacients() {
-    const result = await fetch("http://localhost:3333/pacients")
+    const result = await fetch("https://s202-project-backend.onrender.com/pacients")
 
     const data = await result.json()
 
@@ -109,7 +109,7 @@ export default function App() {
   }
 
   async function getMedics() {
-    const result = await fetch("http://localhost:3333/medics")
+    const result = await fetch("https://s202-project-backend.onrender.com/medics")
 
     const data = await result.json()
 
@@ -119,7 +119,7 @@ export default function App() {
   }
 
   async function getAppointments() {
-    const result = await fetch("http://localhost:3333/appointments")
+    const result = await fetch("https://s202-project-backend.onrender.com/appointments")
 
     const data = await result.json()
 
@@ -129,7 +129,7 @@ export default function App() {
   }
 
   async function createAppointment() {
-    const result = await fetch("http://localhost:3333/appointment", {
+    const result = await fetch("https://s202-project-backend.onrender.com/appointment", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -148,7 +148,7 @@ export default function App() {
   }
 
   async function updateAppointment(id: string) {
-    const result = await fetch("http://localhost:3333/appointment", {
+    const result = await fetch("https://s202-project-backend.onrender.com/appointment", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -168,7 +168,7 @@ export default function App() {
   }
 
   async function deleteAppointment(id: string) {
-    const result = await fetch(`http://localhost:3333/appointment/${id}`, {
+    const result = await fetch(`https://s202-project-backend.onrender.com/appointment/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json"
